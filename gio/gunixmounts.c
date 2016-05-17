@@ -150,6 +150,9 @@ static guint64 mount_poller_time = 0;
 
 #ifdef HAVE_MNTENT_H
 #include <mntent.h>
+#ifdef HAVE_LIBMOUNT
+//TODO
+#endif // HAVE_LIBMOUNT
 #elif defined (HAVE_SYS_MNTTAB_H)
 #include <sys/mnttab.h>
 #endif
@@ -326,6 +329,17 @@ guess_system_internal (const char *mountpoint,
 /* mntent.h (Linux, GNU, NSS) {{{2 */
 #ifdef HAVE_MNTENT_H
 
+#ifdef HAVE_LIBMOUNT
+
+static GList *
+_g_get_unix_mounts (void)
+{
+  //TODO
+  return NULL;
+}
+
+#else
+
 static char *
 get_mtab_read_file (void)
 {
@@ -438,6 +452,8 @@ _g_get_unix_mounts (void)
   
   return g_list_reverse (return_list);
 }
+
+#endif // HAVE_LIBMOUNT
 
 /* mnttab.h {{{2 */
 #elif defined (HAVE_SYS_MNTTAB_H)
@@ -725,6 +741,10 @@ _g_get_unix_mounts (void)
  * don't return swap and ignore mounts.
  */
 
+#ifdef HAVE_LIBMOUNT
+// TODO
+#else
+
 static char *
 get_fstab_file (void)
 {
@@ -740,8 +760,22 @@ get_fstab_file (void)
 #endif
 }
 
+#endif // HAVE_LIBMOUNT
+
 /* mntent.h (Linux, GNU, NSS) {{{2 */
 #ifdef HAVE_MNTENT_H
+
+#ifdef HAVE_LIBMOUNT
+
+static GList *
+_g_get_unix_mount_points (void)
+{
+  //TODO
+  return NULL;
+}
+
+#else
+
 static GList *
 _g_get_unix_mount_points (void)
 {
@@ -821,6 +855,8 @@ _g_get_unix_mount_points (void)
   
   return g_list_reverse (return_list);
 }
+
+#endif // HAVE_LIBMOUNT
 
 /* mnttab.h {{{2 */
 #elif defined (HAVE_SYS_MNTTAB_H)
