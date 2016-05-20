@@ -151,8 +151,8 @@ static guint64 mount_poller_time = 0;
 #ifdef HAVE_MNTENT_H
 #include <mntent.h>
 #ifdef HAVE_LIBMOUNT
-//TODO
-#endif // HAVE_LIBMOUNT
+#include <libmount/libmount.h>
+#endif
 #elif defined (HAVE_SYS_MNTTAB_H)
 #include <sys/mnttab.h>
 #endif
@@ -742,7 +742,13 @@ _g_get_unix_mounts (void)
  */
 
 #ifdef HAVE_LIBMOUNT
-// TODO
+
+static char *
+get_fstab_file (void)
+{
+  return (char *) mnt_get_fstab_path ();
+}
+
 #else
 
 static char *
