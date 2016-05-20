@@ -375,6 +375,11 @@ create_unix_mount_point (const char *device_path,
 
 #ifdef HAVE_LIBMOUNT
 
+/* For documentation on /proc/self/mountinfo see
+ * http://www.kernel.org/doc/Documentation/filesystems/proc.txt
+ */
+#define PROC_MOUNTINFO_PATH "/proc/self/mountinfo"
+
 static GList *
 _g_get_unix_mounts (void)
 {
@@ -386,7 +391,7 @@ _g_get_unix_mounts (void)
   GList *return_list = NULL;
 
   ctxt = mnt_new_context ();
-  mnt_context_get_table (ctxt, "/proc/self/mountinfo", &table);
+  mnt_context_get_table (ctxt, PROC_MOUNTINFO_PATH, &table);
   if (!table)
     mnt_context_get_mtab (ctxt, &table);
 
@@ -433,20 +438,6 @@ _g_get_unix_mounts (void)
 
 static char *
 get_mtab_read_file (void)
-{
-#ifdef _PATH_MOUNTED
-# ifdef __linux__
-  return "/proc/mounts";
-# else
-  return _PATH_MOUNTED;
-# endif
-#else
-  return "/etc/mtab";
-#endif
-}
-
-static char *
-get_mtab_monitor_file (void)
 {
 #ifdef _PATH_MOUNTED
 # ifdef __linux__
@@ -545,6 +536,39 @@ _g_get_unix_mounts (void)
 }
 
 #endif // HAVE_LIBMOUNT
+
+static char *
+get_mtab_monitor_file (void)
+{
+  static char *mountinfo_path = NULL;
+#ifdef HAVE_LIBMOUNT
+  struct stat buf;
+#endif
+
+  if (mountinfo_path != NULL)
+    return mountinfo_path;
+
+#ifdef HAVE_LIBMOUNT
+  /* If using libmount we'll have the logic in place to read mountinfo */
+  if (stat (PROC_MOUNTINFO_PATH, &buf) == 0)
+    {
+      mountinfo_path = PROC_MOUNTINFO_PATH;
+      return mountinfo_path;
+    }
+#endif
+
+#ifdef _PATH_MOUNTED
+# ifdef __linux__
+  mountinfo_path = "/proc/mounts";
+# else
+  mountinfo_path = _PATH_MOUNTED;
+# endif
+#else
+  mountinfo_path = "/etc/mtab";
+#endif
+
+  return mountinfo_path;
+}
 
 /* mnttab.h {{{2 */
 #elif defined (HAVE_SYS_MNTTAB_H)
